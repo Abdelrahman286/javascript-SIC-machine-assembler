@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SIC ASSEMBLER</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+
+      body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .editor {
+        height: 50vh;
+        background: white;
+      }
+
+      .output {
+        height: 50vh;
+        background: white;
+        overflow: scroll;
+        border-top: 1px solid black;
+      }
+
+      textarea {
+        width: 100%;
+        height: 100%;
+      }
+
+      .control-center {
+        width: 100%;
+        background: white;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 3px 0px;
+      }
+
+      .generate {
+        border: none;
+        padding: 7px 20px;
+        border-radius: 7px;
+        background: #0dbd50;
+      }
+
+      .tab-container .controls {
+        display: flex;
+        flex-direction: row;
+        border-top: 1px solid #81818181;
+      }
+
+      .tab-container .controls button {
+        padding: 3px 10px;
+        border-radius: 10px;
+        background: #e4e4e4;
+        margin: 2px 7px;
+        justify-content: center;
+        align-items: center;
+        font-size: 12px;
+        color: black;
+        border: 1px solid black;
+      }
+
+      .tab-container .controls button:focus {
+        outline: none;
+        border: none;
+      }
+
+      .tab-container .tab {
+        display: none;
+      }
+
+      .tab-container .tab:nth-of-type(1) {
+        display: block;
+      }
+
+      table {
+        background: #d6e0ee;
+        width: 100%;
+      }
+
+      table td:nth-of-type(even) {
+        background: rgb(250, 250, 250);
+      }
+
+      table tr:nth-of-type(even) {
+        background: #76a8eb;
+      }
+
+      .ratio-divider {
+        background: #9ca0a8;
+        position: relative;
+        padding: 0 10px;
+        border-radius: 10px;
+        cursor: pointer;
+      }
+
+      .ratios {
+        background: #5f70d1;
+        position: absolute;
+        width: 130px;
+        height: 40px;
+        top: 20px;
+        justify-content: space-around;
+        align-items: center;
+        flex-direction: row;
+        display: none;
+      }
+
+      .ratios div {
+        background: white;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="editor">
+      <textarea spellcheck="false">
+        COPY    START   1000
+        FIRST   STL     RETADR
+        CLOOP   JSUB    RDREC
+          -     LDA     LENGTH
+          -     COMP    ZERO
+          -     JEQ     ENDFIL
+          -     JSUB    WRREC
+          -      J       CLOOP
+        ENDFIL   LDA     EOF
+           -     STA     BUFFER
+           -     LDA     THREE
+           -     STA     LENGTH
+           -     JSUB    WRREC
+           -     LDL     RETADR
+           -     RSUB    -
+        EOF     BYTE    C'EOF' 
+        THREE   WORD    3
+        ZERO    WORD    0
+        RETADR  RESW    1
+        LENGTH  RESW    1
+        BUFFER  RESB    4096
+        RDREC   LDX     ZERO
+          -     LDA     ZERO
+        RLOOP    TD     ZERO
+          -      JEQ    RLOOP
+          -      RD     INPUT
+          -      COMP   ZERO
+          -      JEQ    EXIT
+          -      STCH   BUFFER,X
+          -      TIX    MAXLEN
+          -      JLT    RLOOP
+        EXIT     STX     LENGTH
+          -      RSUB     -
+         INPUT   BYTE    X'F1'
+        MAXLEN   WORD    4096
+        WRREC    LDX     ZERO
+        WLOOP    TD      OUTPUT
+            -    JEQ     WLOOP
+            -    LDCH    BUFFER,X
+            -    WD      OUTPUT
+            -    TIX     LENGTH
+            -    JLT     WLOOP
+            -    RSUB     -
+        OUTPUT   BYTE    X'05'
+           -     END     FIRST 
+    </textarea
+      >
+    </div>
+    <div class="output">
+      <div class="control-center">
+        <div class="ratio-divider">
+          1/1
+          <div class="ratios">
+            <div class="one-one ratio">1/1</div>
+            <div class="one-two ratio">1/2</div>
+            <div class="two-one ratio">2/1</div>
+          </div>
+        </div>
+        <button class="generate">Generate</button>
+      </div>
+      <div class="tab-container">
+        <div class="controls">
+          <button data-tab="1" class="tab-btn">Source code</button>
+          <button data-tab="2" class="tab-btn">Pass One</button>
+          <button data-tab="3" class="tab-btn">Pass Two</button>
+          <button data-tab="4" class="tab-btn">Symbol Table</button>
+          <button data-tab="5" class="tab-btn">Object code</button>
+        </div>
+        <div class="tabs">
+          <div data-tab="1" class="tab source-code">
+            <table>
+              <tr>
+                <th>Line Number</th>
+                <th>Label</th>
+                <th>Operator</th>
+                <th>Operand</th>
+              </tr>
+            </table>
+          </div>
+          <div data-tab="2" class="tab pass-one">
+            <table>
+              <tr>
+                <th>Line Number</th>
+                <th>Location</th>
+                <th>Length</th>
+                <th>Label</th>
+                <th>Operator</th>
+                <th>Operand</th>
+              </tr>
+            </table>
+          </div>
+          <div data-tab="3" class="tab pass-two">
+            <table>
+              <tr>
+                <th>Line Number</th>
+                <th>Location</th>
+                <th>Length</th>
+                <th>Label</th>
+                <th>Operator</th>
+                <th>Operand</th>
+                <th>Opcode,X,Disp</th>
+                <th>Object Code</th>
+              </tr>
+            </table>
+          </div>
+          <div data-tab="4" class="tab symbol-table">
+            <table>
+              <tr>
+                <th>Label</th>
+                <th>value</th>
+              </tr>
+            </table>
+          </div>
+          <div data-tab="5" class="tab object-code">
+            <div class="object-code-destination">
+              <h1>Press Generate....!</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="./utils.js"></script>
+    <script src="./opcode.js"></script>
+    <script src="./assembler-directives.js"></script>
+    <script src="./tab-handler.js"></script>
+    <script src="./screen-divider.js"></script>
+    <script src="./table-render.js"></script>
+    <script src="./pass-one.js"></script>
+    <script src="./pass-two.js"></script>
+    <script src="./main.js"></script>
+  </body>
+</html>
