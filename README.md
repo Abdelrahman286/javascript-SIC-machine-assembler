@@ -1,2 +1,5 @@
 # javascript-SIC-machine-assembler
-2 phases assembler written in javascript
+2 phases assembler in javascript
+
+
+![](./screenshot.png)
